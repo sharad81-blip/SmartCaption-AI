@@ -1,77 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartCaption AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #111827;
+    }
+
+    header {
+      background: linear-gradient(135deg, #111827, #2563eb);
+      color: white;
+      text-align: center;
+      padding: 55px 20px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 46px;
+    }
+
+    header p {
+      font-size: 18px;
+      margin-bottom: 0;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 1000px;
+      margin: 35px auto;
+    }
+
+    .card {
+      background: white;
+      padding: 28px;
+      margin-bottom: 25px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    }
+
+    .upload-box {
+      border: 2px dashed #2563eb;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      background: #eff6ff;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 13px;
+      margin-top: 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    textarea {
+      min-height: 160px;
+      resize: vertical;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: 0;
+      padding: 14px 22px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 18px;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    video {
+      width: 100%;
+      margin-top: 20px;
+      border-radius: 15px;
+      background: black;
+    }
+
+    .status {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #2563eb;
+    }
+
+    .preview {
+      min-height: 180px;
+      background: #111827;
+      color: white;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      text-align: center;
+      font-size: 30px;
+      font-weight: bold;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .progress {
+      width: 100%;
+      height: 10px;
+      background: #e5e7eb;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-top: 18px;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: #2563eb;
+      transition: width .3s;
+    }
+
+    .segment {
+      background: #f8fafc;
+      border-left: 4px solid #2563eb;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+
+    .time {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>SmartCaption AI</h1>
+  <p>AI-powered Gujarati, Hindi & English video captions</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🎬 Upload Your Video</h2>
+
+    <div class="upload-box">
+      <p>Select your video</p>
+
+      <input
+        type="file"
+        id="videoInput"
+        accept="video/*"
+      >
+
+      <div
+        id="fileStatus"
+        class="status">
+      </div>
+    </div>
+
+    <video
+      id="videoPreview"
+      controls
+      class="hidden">
+    </video>
+  </div>
+
+
+  <div class="card">
+    <h2>⚙️ Caption Settings</h2>
+
+    <label for="language">
+      Language
+    </label>
+
+    <select id="language">
+      <option value="gu">Gujarati</option>
+      <option value="hi">Hindi</option>
+      <option value="en">English</option>
+    </select>
+
+
+    <label for="captionStyle">
+      Caption Style
+    </label>
+
+    <select id="captionStyle">
+      <option value="modern">Modern</option>
+      <option value="yellow">Yellow</option>
+      <option value="box">Black Box</option>
+    </select>
+
+
+    <button
+      id="generateBtn">
+      ✨ Generate AI Captions
+    </button>
+
+
+    <div class="progress">
+      <div
+        id="progressBar"
+        class="progress-bar">
+      </div>
+    </div>
+
+
+    <div
+      id="status"
+      class="status">
+      Ready
+    </div>
+  </div>
+
+
+  <div class="card">
+    <h2>👀 Caption Preview</h2>
+
+    <div
+      id="captionPreview"
+      class="preview">
+      Upload a video and generate captions.
+    </div>
+  </div>
+
+
+  <div class="card">
+    <h2>✏️ Caption Editor</h2>
+
+    <textarea
+      id="transcript"
+      placeholder="AI captions will appear here...">
+    </textarea>
+
+    <button
+      id="downloadBtn">
+      ⬇ Download SRT
+    </button>
+  </div>
+
+
+  <div class="card">
+    <h2>🕒 Caption Timeline</h2>
+
+    <div id="segments">
+      No captions generated yet.
+    </div>
+  </div>
+
+</div>
+
+
+<script>
+
+const API_URL =
+  "https://smartcaption-ai.pandyasharad81.workers.dev/";
+
+
+const videoInput =
+  document.getElementById("videoInput");
+
+const videoPreview =
+  document.getElementById("videoPreview");
+
+const fileStatus =
+  document.getElementById("fileStatus");
+
+const generateBtn =
+  document.getElementById("generateBtn");
+
+const statusBox =
+  document.getElementById("status");
+
+const captionPreview =
+  document.getElementById("captionPreview");
+
+const transcript =
+  document.getElementById("transcript");
+
+const downloadBtn =
+  document.getElementById("downloadBtn");
+
+const language =
+  document.getElementById("language");
+
+const captionStyle =
+  document.getElementById("captionStyle");
+
+const progressBar =
+  document.getElementById("progressBar");
+
+const segmentsBox =
+  document.getElementById("segments");
+
+
+let selectedFile = null;
+let generatedSegments = [];
+
+
+videoInput.addEventListener(
+  "change",
+  function () {
+
+    const file =
+      this.files[0];
+
+    if (!file) return;
+
+    selectedFile = file;
+
+    videoPreview.src =
+      URL.createObjectURL(file);
+
+    videoPreview.classList.remove(
+      "hidden"
+    );
+
+    fileStatus.textContent =
+      "✅ Selected: " + file.name;
+
+    statusBox.textContent =
+      "Video ready.";
+  }
+);
+
+
 generateBtn.addEventListener(
   "click",
   async function () {
 
     if (!selectedFile) {
-      alert("Please upload a video first.");
+
+      alert(
+        "Please upload a video first."
+      );
+
       return;
     }
 
-    generateBtn.disabled = true;
-    statusBox.textContent =
-      "🎧 Preparing audio...";
+
+    if (!videoPreview.captureStream) {
+
+      alert(
+        "Please use Google Chrome."
+      );
+
+      return;
+    }
+
+
+    generateBtn.disabled =
+      true;
+
+    progressBar.style.width =
+      "10%";
+
 
     try {
 
-      // Check browser support
-      const capture =
-        videoPreview.captureStream ||
-        videoPreview.mozCaptureStream;
+      statusBox.textContent =
+        "🎧 Preparing audio...";
 
-      if (!capture) {
-        throw new Error(
-          "Please use Google Chrome for this feature."
-        );
-      }
 
-      const stream = capture.call(
-        videoPreview
-      );
+      const stream =
+        videoPreview.captureStream();
+
 
       const audioTracks =
         stream.getAudioTracks();
 
+
       if (!audioTracks.length) {
+
         throw new Error(
           "This video has no audio track."
         );
       }
 
+
       const audioStream =
-        new MediaStream(audioTracks);
+        new MediaStream(
+          audioTracks
+        );
+
 
       let mimeType =
         "audio/webm;codecs=opus";
+
 
       if (
         !MediaRecorder.isTypeSupported(
           mimeType
         )
       ) {
-        mimeType = "audio/webm";
+
+        mimeType =
+          "audio/webm";
       }
+
 
       const recorder =
         new MediaRecorder(
           audioStream,
-          { mimeType: mimeType }
+          {
+            mimeType
+          }
         );
+
 
       const audioChunks = [];
 
+
       recorder.ondataavailable =
         function (event) {
+
           if (
             event.data &&
             event.data.size > 0
           ) {
+
             audioChunks.push(
               event.data
             );
           }
         };
 
-      const recordingFinished =
+
+      const finished =
         new Promise(
           function (resolve, reject) {
 
@@ -89,6 +473,7 @@ generateBtn.addEventListener(
 
               };
 
+
             recorder.onerror =
               function () {
 
@@ -103,48 +488,79 @@ generateBtn.addEventListener(
           }
         );
 
-      videoPreview.currentTime = 0;
+
+      videoPreview.currentTime =
+        0;
+
 
       recorder.start();
 
+
       statusBox.textContent =
-        "🎧 Reading your video audio...";
+        "🎧 Reading video audio...";
+
+
+      progressBar.style.width =
+        "25%";
+
 
       await videoPreview.play();
+
 
       await new Promise(
         function (resolve) {
 
           videoPreview.onended =
-            resolve;
+            function () {
+
+              resolve();
+
+            };
 
         }
       );
+
 
       recorder.stop();
 
+
       const audioBlob =
-        await recordingFinished;
+        await finished;
+
 
       audioTracks.forEach(
         function (track) {
+
           track.stop();
+
         }
       );
 
-      statusBox.textContent =
-        "📦 Sending audio to AI...";
 
-      // Convert audio to base64
-      const buffer =
+      progressBar.style.width =
+        "45%";
+
+
+      statusBox.textContent =
+        "📦 Preparing audio for AI...";
+
+
+      const arrayBuffer =
         await audioBlob.arrayBuffer();
 
+
       const bytes =
-        new Uint8Array(buffer);
+        new Uint8Array(
+          arrayBuffer
+        );
+
 
       let binary = "";
 
-      const chunkSize = 0x8000;
+
+      const chunkSize =
+        0x8000;
+
 
       for (
         let i = 0;
@@ -158,19 +574,30 @@ generateBtn.addEventListener(
             i + chunkSize
           );
 
+
         binary +=
           String.fromCharCode(
             ...chunk
           );
+
       }
+
 
       const base64Audio =
         btoa(binary);
 
-      // Cloudflare Worker
+
+      progressBar.style.width =
+        "60%";
+
+
+      statusBox.textContent =
+        "🤖 AI is transcribing...";
+
+
       const response =
         await fetch(
-          "https://smartcaption-ai.pandyasharad81.workers.dev/",
+          API_URL,
           {
             method: "POST",
 
@@ -179,25 +606,35 @@ generateBtn.addEventListener(
                 "application/json"
             },
 
-            body: JSON.stringify({
-              audio: base64Audio,
+            body:
+              JSON.stringify({
+                audio:
+                  base64Audio,
 
-              language:
-                language.value
-            })
+                language:
+                  language.value
+              })
           }
         );
 
+
       if (!response.ok) {
+
+        const errorText =
+          await response.text();
 
         throw new Error(
           "Cloudflare error: " +
-          response.status
+          response.status +
+          " " +
+          errorText
         );
       }
 
+
       const result =
         await response.json();
+
 
       if (!result.success) {
 
@@ -207,35 +644,414 @@ generateBtn.addEventListener(
         );
       }
 
+
+      progressBar.style.width =
+        "85%";
+
+
       const text =
         result.text || "";
 
+
       transcript.value =
         text;
+
 
       captionPreview.textContent =
         text ||
         "No speech detected.";
 
+
+      generatedSegments =
+        result.segments || [];
+
+
+      renderSegments();
+
+
+      applyStyle();
+
+
+      progressBar.style.width =
+        "100%";
+
+
       statusBox.textContent =
         "✅ AI captions generated!";
+
 
     } catch (error) {
 
       console.error(error);
 
+
       statusBox.textContent =
         "❌ " +
-        error.message;
+        (
+          error.message ||
+          "Something went wrong."
+        );
+
 
       alert(
-        error.message
+        error.message ||
+        "Caption generation failed."
       );
+
 
     } finally {
 
       generateBtn.disabled =
         false;
+
     }
+
   }
 );
+
+
+function renderSegments() {
+
+  if (
+    !generatedSegments.length
+  ) {
+
+    segmentsBox.innerHTML =
+      "No timestamped captions.";
+
+    return;
+  }
+
+
+  segmentsBox.innerHTML =
+    "";
+
+
+  generatedSegments.forEach(
+    function (
+      segment
+    ) {
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+
+      div.className =
+        "segment";
+
+
+      const start =
+        segment.start ??
+        segment.timestamp?.[0] ??
+        0;
+
+
+      const end =
+        segment.end ??
+        segment.timestamp?.[1] ??
+        start + 3;
+
+
+      div.innerHTML =
+        "<div class='time'>" +
+        formatTime(start) +
+        " → " +
+        formatTime(end) +
+        "</div>" +
+        "<div>" +
+        escapeHtml(
+          segment.text || ""
+        ) +
+        "</div>";
+
+
+      segmentsBox.appendChild(
+        div
+      );
+
+    }
+  );
+}
+
+
+function applyStyle() {
+
+  captionPreview.style.padding =
+    "";
+
+  captionPreview.style.borderRadius =
+    "";
+
+
+  if (
+    captionStyle.value ===
+    "yellow"
+  ) {
+
+    captionPreview.style.color =
+      "#fde047";
+
+    captionPreview.style.textShadow =
+      "3px 3px 8px black";
+
+    captionPreview.style.background =
+      "transparent";
+
+  }
+
+
+  else if (
+    captionStyle.value ===
+    "box"
+  ) {
+
+    captionPreview.style.color =
+      "white";
+
+    captionPreview.style.textShadow =
+      "none";
+
+    captionPreview.style.background =
+      "rgba(0,0,0,.75)";
+
+    captionPreview.style.padding =
+      "12px 20px";
+
+    captionPreview.style.borderRadius =
+      "10px";
+
+  }
+
+
+  else {
+
+    captionPreview.style.color =
+      "white";
+
+    captionPreview.style.textShadow =
+      "3px 3px 8px black";
+
+    captionPreview.style.background =
+      "transparent";
+
+  }
+}
+
+
+captionStyle.addEventListener(
+  "change",
+  applyStyle
+);
+
+
+downloadBtn.addEventListener(
+  "click",
+  function () {
+
+    if (
+      !generatedSegments.length
+    ) {
+
+      alert(
+        "Generate captions first."
+      );
+
+      return;
+    }
+
+
+    let srt = "";
+
+
+    generatedSegments.forEach(
+      function (
+        segment,
+        index
+      ) {
+
+        const start =
+          segment.start ??
+          segment.timestamp?.[0] ??
+          0;
+
+
+        const end =
+          segment.end ??
+          segment.timestamp?.[1] ??
+          start + 3;
+
+
+        srt +=
+          (index + 1) +
+          "\n";
+
+
+        srt +=
+          formatSRT(start) +
+          " --> " +
+          formatSRT(end) +
+          "\n";
+
+
+        srt +=
+          (segment.text || "").trim() +
+          "\n\n";
+
+      }
+    );
+
+
+    const blob =
+      new Blob(
+        [srt],
+        {
+          type:
+            "text/plain;charset=utf-8"
+        }
+      );
+
+
+    const url =
+      URL.createObjectURL(
+        blob
+      );
+
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+
+    link.href =
+      url;
+
+    link.download =
+      "smartcaption.srt";
+
+
+    link.click();
+
+
+    URL.revokeObjectURL(
+      url
+    );
+
+  }
+);
+
+
+function formatTime(
+  seconds
+) {
+
+  seconds =
+    Number(seconds) || 0;
+
+
+  const minutes =
+    Math.floor(
+      seconds / 60
+    );
+
+
+  const secs =
+    Math.floor(
+      seconds % 60
+    );
+
+
+  return (
+    String(minutes)
+      .padStart(2, "0") +
+    ":" +
+    String(secs)
+      .padStart(2, "0")
+  );
+}
+
+
+function formatSRT(
+  seconds
+) {
+
+  seconds =
+    Number(seconds) || 0;
+
+
+  const hours =
+    Math.floor(
+      seconds / 3600
+    );
+
+
+  const minutes =
+    Math.floor(
+      (seconds % 3600) / 60
+    );
+
+
+  const secs =
+    Math.floor(
+      seconds % 60
+    );
+
+
+  const millis =
+    Math.floor(
+      (
+        seconds -
+        Math.floor(seconds)
+      ) * 1000
+    );
+
+
+  return (
+    String(hours)
+      .padStart(2, "0") +
+    ":" +
+    String(minutes)
+      .padStart(2, "0") +
+    ":" +
+    String(secs)
+      .padStart(2, "0") +
+    "," +
+    String(millis)
+      .padStart(3, "0")
+  );
+}
+
+
+function escapeHtml(
+  text
+) {
+
+  return String(text)
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+}
+
+</script>
+
+</body>
+</html>
