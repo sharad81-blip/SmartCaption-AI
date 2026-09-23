@@ -1,841 +1,336 @@
-<script>
-const API_URL =
-  "https://smartcaption-ai.pandyasharad81.workers.dev/";
-
-const videoInput =
-  document.getElementById("videoInput");
-
-const videoPreview =
-  document.getElementById("videoPreview");
-
-const fileStatus =
-  document.getElementById("fileStatus");
-
-const generateBtn =
-  document.getElementById("generateBtn");
-
-const downloadBtn =
-  document.getElementById("downloadBtn");
-
-const language =
-  document.getElementById("language");
-
-const captionStyle =
-  document.getElementById("captionStyle");
-
-const transcript =
-  document.getElementById("transcript");
-
-const captionPreview =
-  document.getElementById("captionPreview");
-
-const segmentsBox =
-  document.getElementById("segments");
-
-const statusBox =
-  document.getElementById("status");
-
-const progressBar =
-  document.getElementById("progressBar");
-
-let selectedFile = null;
-let generatedChunks = [];
-
-
-// -----------------------------
-// Video select
-// -----------------------------
-
-videoInput.addEventListener("change", () => {
-
-  const file = videoInput.files[0];
-
-  if (!file) return;
-
-  selectedFile = file;
-
-  videoPreview.src =
-    URL.createObjectURL(file);
-
-  videoPreview.classList.remove("hidden");
-
-  fileStatus.textContent =
-    "✅ Selected: " + file.name;
-});
-
-
-// -----------------------------
-// Language mapping
-// -----------------------------
-
-function getLanguageCode() {
-
-  const value = language.value;
-
-  if (value === "gujarati") return "gu";
-  if (value === "hindi") return "hi";
-  return "en";
-}
-
-
-// -----------------------------
-// Extract audio
-// -----------------------------
-
-async function extractAudio(file) {
-
-  statusBox.textContent =
-    "🎧 Reading video audio...";
-
-  const arrayBuffer =
-    await file.arrayBuffer();
-
-  const audioContext =
-    new AudioContext();
-
-  const decoded =
-    await audioContext.decodeAudioData(
-      arrayBuffer
-    );
-
-  const targetRate = 16000;
-
-  const duration =
-    decoded.duration;
-
-  const offline =
-    new OfflineAudioContext(
-      1,
-      Math.ceil(duration * targetRate),
-      targetRate
-    );
-
-  const source =
-    offline.createBufferSource();
-
-  source.buffer = decoded;
-
-  source.connect(
-    offline.destination
-  );
-
-  source.start();
-
-  const rendered =
-    await offline.startRendering();
-
-  const samples =
-    rendered.getChannelData(0);
-
-  await audioContext.close();
-
-  return samples;
-}
-
-
-// -----------------------------
-// Float32 -> WAV
-// -----------------------------
-
-function createWavBlob(
-  samples,
-  sampleRate = 16000
-) {
-
-  const buffer =
-    new ArrayBuffer(
-      44 + samples.length * 2
-    );
-
-  const view =
-    new DataView(buffer);
-
-  function writeString(offset, text) {
-
-    for (
-      let i = 0;
-      i < text.length;
-      i++
-    ) {
-
-      view.setUint8(
-        offset + i,
-        text.charCodeAt(i)
-      );
-
-    }
-  }
-
-  writeString(0, "RIFF");
-
-  view.setUint32(
-    4,
-    36 + samples.length * 2,
-    true
-  );
-
-  writeString(8, "WAVE");
-
-  writeString(12, "fmt ");
-
-  view.setUint32(16, 16, true);
-
-  view.setUint16(20, 1, true);
-
-  view.setUint16(22, 1, true);
-
-  view.setUint32(
-    24,
-    sampleRate,
-    true
-  );
-
-  view.setUint32(
-    28,
-    sampleRate * 2,
-    true
-  );
-
-  view.setUint16(32, 2, true);
-
-  view.setUint16(34, 16, true);
-
-  writeString(36, "data");
-
-  view.setUint32(
-    40,
-    samples.length * 2,
-    true
-  );
-
-  let offset = 44;
-
-  for (
-    let i = 0;
-    i < samples.length;
-    i++
-  ) {
-
-    let sample =
-      Math.max(
-        -1,
-        Math.min(1, samples[i])
-      );
-
-    sample =
-      sample < 0
-        ? sample * 32768
-        : sample * 32767;
-
-    view.setInt16(
-      offset,
-      sample,
-      true
-    );
-
-    offset += 2;
-  }
-
-  return new Blob(
-    [buffer],
-    {
-      type: "audio/wav"
-    }
-  );
-}
-
-
-// -----------------------------
-// Blob -> Base64
-// -----------------------------
-
-async function blobToBase64(blob) {
-
-  const buffer =
-    await blob.arrayBuffer();
-
-  const bytes =
-    new Uint8Array(buffer);
-
-  let binary = "";
-
-  const chunkSize = 0x8000;
-
-  for (
-    let i = 0;
-    i < bytes.length;
-    i += chunkSize
-  ) {
-
-    const chunk =
-      bytes.subarray(
-        i,
-        i + chunkSize
-      );
-
-    binary +=
-      String.fromCharCode(
-        ...chunk
-      );
-  }
-
-  return btoa(binary);
-}
-
-
-// -----------------------------
-// Generate captions
-// -----------------------------
-
-generateBtn.addEventListener(
-  "click",
-  async () => {
-
-    if (!selectedFile) {
-
-      alert(
-        "Please select a video first."
-      );
-
-      return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartCaption AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
     }
 
-    generateBtn.disabled = true;
-
-    progressBar.style.width = "10%";
-
-    try {
-
-      statusBox.textContent =
-        "🎧 Extracting audio...";
-
-      const samples =
-        await extractAudio(
-          selectedFile
-        );
-
-      progressBar.style.width =
-        "35%";
-
-      const wavBlob =
-        createWavBlob(
-          samples,
-          16000
-        );
-
-      statusBox.textContent =
-        "📦 Preparing audio...";
-
-      const base64Audio =
-        await blobToBase64(
-          wavBlob
-        );
-
-      progressBar.style.width =
-        "50%";
-
-      statusBox.textContent =
-        "🤖 Cloud AI is transcribing...";
-
-      const response =
-        await fetch(
-          API_URL,
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-
-            body:
-              JSON.stringify({
-                audio: base64Audio,
-                language:
-                  getLanguageCode()
-              })
-          }
-        );
-
-      progressBar.style.width =
-        "75%";
-
-      if (!response.ok) {
-
-        throw new Error(
-          "Cloudflare API error: " +
-          response.status
-        );
-      }
-
-      const result =
-        await response.json();
-
-      if (!result.success) {
-
-        throw new Error(
-          result.error ||
-          "Transcription failed"
-        );
-      }
-
-      const finalText =
-        result.text || "";
-
-      transcript.value =
-        finalText.trim();
-
-      generatedChunks =
-        normalizeSegments(
-          result.segments,
-          result.vtt,
-          finalText
-        );
-
-      renderChunks();
-
-      captionPreview.textContent =
-        finalText.trim() ||
-        "No speech detected.";
-
-      applyStyle();
-
-      progressBar.style.width =
-        "100%";
-
-      statusBox.textContent =
-        "✅ Captions generated successfully!";
-
-    } catch (error) {
-
-      console.error(error);
-
-      statusBox.textContent =
-        "❌ " +
-        (
-          error.message ||
-          "Caption generation failed."
-        );
-
-      alert(
-        error.message ||
-        "Caption generation failed."
-      );
-
-    } finally {
-
-      generateBtn.disabled =
-        false;
-    }
-  }
-);
-
-
-// -----------------------------
-// Normalize segments
-// -----------------------------
-
-function normalizeSegments(
-  segments,
-  vtt,
-  fullText
-) {
-
-  if (
-    Array.isArray(segments) &&
-    segments.length
-  ) {
-
-    return segments.map(
-      (segment) => {
-
-        const start =
-          segment.start ??
-          segment.timestamp?.[0] ??
-          0;
-
-        const end =
-          segment.end ??
-          segment.timestamp?.[1] ??
-          start + 3;
-
-        return {
-          start,
-          end,
-          text:
-            segment.text || ""
-        };
-      }
-    );
-  }
-
-  if (vtt) {
-
-    return parseVTT(vtt);
-  }
-
-  return [{
-    start: 0,
-    end: 3,
-    text: fullText || ""
-  }];
-}
-
-
-// -----------------------------
-// Parse VTT
-// -----------------------------
-
-function parseVTT(vtt) {
-
-  const blocks =
-    vtt
-      .replace(/\r/g, "")
-      .split("\n\n");
-
-  const result = [];
-
-  for (const block of blocks) {
-
-    const lines =
-      block.split("\n");
-
-    const timeLineIndex =
-      lines.findIndex(
-        line =>
-          line.includes("-->")
-      );
-
-    if (timeLineIndex === -1) {
-      continue;
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #111827;
     }
 
-    const timeLine =
-      lines[timeLineIndex];
-
-    const parts =
-      timeLine.split("-->");
-
-    const start =
-      parseVTTTime(
-        parts[0].trim()
-      );
-
-    const end =
-      parseVTTTime(
-        parts[1].trim()
-      );
-
-    const text =
-      lines
-        .slice(timeLineIndex + 1)
-        .join(" ")
-        .trim();
-
-    if (text) {
-
-      result.push({
-        start,
-        end,
-        text
-      });
-    }
-  }
-
-  return result;
-}
-
-
-// -----------------------------
-// Parse VTT time
-// -----------------------------
-
-function parseVTTTime(value) {
-
-  value =
-    value.replace(
-      /[<].*?[>]/g,
-      ""
-    );
-
-  const parts =
-    value.split(":");
-
-  let hours = 0;
-  let minutes = 0;
-  let seconds = 0;
-
-  if (parts.length === 3) {
-
-    hours =
-      Number(parts[0]);
-
-    minutes =
-      Number(parts[1]);
-
-    seconds =
-      Number(parts[2]);
-
-  } else {
-
-    minutes =
-      Number(parts[0]);
-
-    seconds =
-      Number(parts[1]);
-  }
-
-  return (
-    hours * 3600 +
-    minutes * 60 +
-    seconds
-  );
-}
-
-
-// -----------------------------
-// Timeline
-// -----------------------------
-
-function renderChunks() {
-
-  if (!generatedChunks.length) {
-
-    segmentsBox.innerHTML =
-      "No timestamped captions returned.";
-
-    return;
-  }
-
-  segmentsBox.innerHTML = "";
-
-  generatedChunks.forEach(
-    (chunk, index) => {
-
-      const item =
-        document.createElement("div");
-
-      item.className = "chunk";
-
-      item.innerHTML = `
-        <div class="time">
-          ${formatTime(chunk.start)}
-          →
-          ${formatTime(chunk.end)}
-        </div>
-
-        <div>
-          ${escapeHtml(chunk.text)}
-        </div>
-      `;
-
-      segmentsBox.appendChild(item);
-    }
-  );
-}
-
-
-// -----------------------------
-// Caption style
-// -----------------------------
-
-captionStyle.addEventListener(
-  "change",
-  applyStyle
-);
-
-function applyStyle() {
-
-  captionPreview.className =
-    "caption";
-
-  captionPreview.style.padding =
-    "";
-
-  captionPreview.style.borderRadius =
-    "";
-
-  if (
-    captionStyle.value ===
-    "modern"
-  ) {
-
-    captionPreview.style.color =
-      "white";
-
-    captionPreview.style.textShadow =
-      "3px 3px 8px black";
-
-    captionPreview.style.background =
-      "transparent";
-
-  } else if (
-    captionStyle.value ===
-    "yellow"
-  ) {
-
-    captionPreview.style.color =
-      "#fde047";
-
-    captionPreview.style.textShadow =
-      "3px 3px 8px black";
-
-    captionPreview.style.background =
-      "transparent";
-
-  } else {
-
-    captionPreview.style.color =
-      "white";
-
-    captionPreview.style.textShadow =
-      "none";
-
-    captionPreview.style.background =
-      "rgba(0,0,0,.75)";
-
-    captionPreview.style.padding =
-      "12px 20px";
-
-    captionPreview.style.borderRadius =
-      "10px";
-  }
-}
-
-
-// -----------------------------
-// SRT Download
-// -----------------------------
-
-downloadBtn.addEventListener(
-  "click",
-  () => {
-
-    if (!generatedChunks.length) {
-
-      alert(
-        "Generate captions first."
-      );
-
-      return;
+    header {
+      background: linear-gradient(135deg, #111827, #2563eb);
+      color: white;
+      text-align: center;
+      padding: 55px 20px;
     }
 
-    let srt = "";
+    header h1 {
+      margin: 0;
+      font-size: 46px;
+    }
 
-    generatedChunks.forEach(
-      (chunk, index) => {
+    header p {
+      font-size: 18px;
+    }
 
-        srt +=
-          `${index + 1}\n`;
+    .container {
+      width: 92%;
+      max-width: 1000px;
+      margin: 35px auto;
+    }
 
-        srt +=
-          `${formatSRTTime(chunk.start)} --> ` +
-          `${formatSRTTime(chunk.end)}\n`;
+    .card {
+      background: white;
+      padding: 28px;
+      margin-bottom: 25px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    }
 
-        srt +=
-          `${chunk.text.trim()}\n\n`;
+    .upload-box {
+      border: 2px dashed #2563eb;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      background: #eff6ff;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 13px;
+      margin-top: 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    textarea {
+      min-height: 150px;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      border: 0;
+      padding: 14px 22px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 18px;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    video {
+      width: 100%;
+      margin-top: 20px;
+      border-radius: 15px;
+      background: black;
+    }
+
+    .status {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #2563eb;
+    }
+
+    .preview {
+      min-height: 180px;
+      background: #111827;
+      color: white;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      text-align: center;
+      font-size: 30px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>SmartCaption AI</h1>
+    <p>AI-powered Gujarati, Hindi & English video captions</p>
+  </header>
+
+  <div class="container">
+
+    <div class="card">
+      <h2>🎬 Upload Your Video</h2>
+
+      <div class="upload-box">
+        <p>Upload your video to create captions</p>
+
+        <input
+          type="file"
+          id="videoInput"
+          accept="video/*"
+        >
+
+        <div id="fileStatus" class="status"></div>
+      </div>
+
+      <video
+        id="videoPreview"
+        controls
+        style="display:none;">
+      </video>
+    </div>
+
+
+    <div class="card">
+      <h2>⚙️ Caption Settings</h2>
+
+      <label>Language</label>
+
+      <select id="language">
+        <option value="gu">Gujarati</option>
+        <option value="hi">Hindi</option>
+        <option value="en">English</option>
+      </select>
+
+      <label>Caption Style</label>
+
+      <select id="style">
+        <option value="modern">Modern</option>
+        <option value="yellow">Yellow</option>
+        <option value="box">Black Box</option>
+      </select>
+
+      <button onclick="showDemo()">
+        ✨ Generate AI Captions
+      </button>
+
+      <div
+        id="status"
+        class="status">
+        Ready
+      </div>
+    </div>
+
+
+    <div class="card">
+
+      <h2>👀 Caption Preview</h2>
+
+      <div
+        id="captionPreview"
+        class="preview">
+
+        Upload a video and generate captions.
+
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>✏️ Caption Editor</h2>
+
+      <textarea
+        id="transcript"
+        placeholder="Your AI-generated captions will appear here...">
+      </textarea>
+
+      <button onclick="downloadText()">
+        ⬇ Download Caption Text
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <script>
+
+    const videoInput =
+      document.getElementById("videoInput");
+
+    const videoPreview =
+      document.getElementById("videoPreview");
+
+    const fileStatus =
+      document.getElementById("fileStatus");
+
+
+    videoInput.addEventListener(
+      "change",
+      function () {
+
+        const file =
+          this.files[0];
+
+        if (!file) return;
+
+        videoPreview.src =
+          URL.createObjectURL(file);
+
+        videoPreview.style.display =
+          "block";
+
+        fileStatus.textContent =
+          "✅ Selected: " + file.name;
       }
     );
 
-    const blob =
-      new Blob(
-        [srt],
-        {
-          type:
-            "text/plain;charset=utf-8"
-        }
-      );
 
-    const url =
-      URL.createObjectURL(blob);
+    function showDemo() {
 
-    const link =
-      document.createElement("a");
+      const language =
+        document.getElementById(
+          "language"
+        ).value;
 
-    link.href = url;
+      const preview =
+        document.getElementById(
+          "captionPreview"
+        );
 
-    link.download =
-      "smartcaption.srt";
+      const transcript =
+        document.getElementById(
+          "transcript"
+        );
 
-    link.click();
+      if (language === "gu") {
 
-    URL.revokeObjectURL(url);
-  }
-);
+        preview.textContent =
+          "આ તમારું Gujarati caption છે";
 
+        transcript.value =
+          "આ તમારું Gujarati caption છે";
 
-// -----------------------------
-// Helpers
-// -----------------------------
+      } else if (language === "hi") {
 
-function formatTime(seconds) {
+        preview.textContent =
+          "यह आपका Hindi caption है";
 
-  if (
-    seconds === undefined ||
-    seconds === null
-  ) {
-    return "--:--";
-  }
+        transcript.value =
+          "यह आपका Hindi caption है";
 
-  const minutes =
-    Math.floor(seconds / 60);
+      } else {
 
-  const secs =
-    Math.floor(seconds % 60);
+        preview.textContent =
+          "This is your English caption";
 
-  return (
-    String(minutes).padStart(2, "0") +
-    ":" +
-    String(secs).padStart(2, "0")
-  );
-}
+        transcript.value =
+          "This is your English caption";
+      }
+
+      document.getElementById(
+        "status"
+      ).textContent =
+        "✅ Caption preview generated";
+    }
 
 
-function formatSRTTime(seconds) {
+    function downloadText() {
 
-  seconds =
-    Math.max(
-      0,
-      Number(seconds) || 0
-    );
+      const text =
+        document.getElementById(
+          "transcript"
+        ).value;
 
-  const hours =
-    Math.floor(seconds / 3600);
+      if (!text) {
 
-  const minutes =
-    Math.floor(
-      (seconds % 3600) / 60
-    );
+        alert(
+          "Please generate or enter captions first."
+        );
 
-  const secs =
-    Math.floor(seconds % 60);
+        return;
+      }
 
-  const millis =
-    Math.floor(
-      (seconds -
-       Math.floor(seconds)) * 1000
-    );
+      const blob =
+        new Blob(
+          [text],
+          { type: "text/plain" }
+        );
 
-  return (
-    String(hours).padStart(2, "0") +
-    ":" +
-    String(minutes).padStart(2, "0") +
-    ":" +
-    String(secs).padStart(2, "0") +
-    "," +
-    String(millis).padStart(3, "0")
-  );
-}
+      const url =
+        URL.createObjectURL(blob);
 
+      const a =
+        document.createElement("a");
 
-function escapeHtml(text) {
+      a.href = url;
 
-  return String(text)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+      a.download =
+        "smartcaption.txt";
 
-</script>
+      a.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+  </script>
+
+</body>
+</html>
