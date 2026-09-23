@@ -1,352 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>SmartCaption AI</title>
-
-<style>
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f4f7fb;
-  color: #111827;
-}
-
-header {
-  background: linear-gradient(135deg, #111827, #2563eb);
-  color: white;
-  text-align: center;
-  padding: 55px 20px;
-}
-
-header h1 {
-  margin: 0;
-  font-size: 46px;
-}
-
-header p {
-  font-size: 18px;
-  opacity: .9;
-}
-
-.container {
-  width: 92%;
-  max-width: 1100px;
-  margin: 35px auto;
-}
-
-.card {
-  background: white;
-  padding: 28px;
-  margin-bottom: 25px;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.08);
-}
-
-.upload-box {
-  border: 2px dashed #2563eb;
-  border-radius: 16px;
-  padding: 40px;
-  text-align: center;
-  background: #eff6ff;
-}
-
-input[type=file] {
-  margin-top: 20px;
-}
-
-video {
-  width: 100%;
-  max-height: 500px;
-  margin-top: 20px;
-  border-radius: 15px;
-  background: #000;
-}
-
-.controls {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-select,
-textarea {
-  width: 100%;
-  padding: 13px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  font-size: 15px;
-}
-
-textarea {
-  min-height: 180px;
-}
-
-button {
-  background: #2563eb;
-  color: white;
-  border: 0;
-  padding: 14px 22px;
-  border-radius: 10px;
-  font-size: 16px;
-  cursor: pointer;
-  margin-top: 18px;
-}
-
-button:hover {
-  background: #1d4ed8;
-}
-
-button:disabled {
-  opacity: .6;
-  cursor: not-allowed;
-}
-
-.secondary {
-  background: #111827;
-}
-
-.status {
-  margin-top: 15px;
-  font-weight: bold;
-  color: #2563eb;
-}
-
-.caption-preview {
-  min-height: 180px;
-  background: #111827;
-  border-radius: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 30px;
-  color: white;
-  text-align: center;
-}
-
-.caption {
-  font-size: 32px;
-  font-weight: bold;
-  line-height: 1.4;
-  max-width: 90%;
-}
-
-.chunk {
-  background: #f8fafc;
-  padding: 15px;
-  border-radius: 12px;
-  margin: 10px 0;
-  border-left: 4px solid #2563eb;
-}
-
-.time {
-  color: #6b7280;
-  font-size: 13px;
-  margin-bottom: 5px;
-}
-
-.hidden {
-  display: none;
-}
-
-.progress {
-  width: 100%;
-  height: 12px;
-  background: #e5e7eb;
-  border-radius: 20px;
-  overflow: hidden;
-  margin-top: 15px;
-}
-
-.progress-bar {
-  height: 100%;
-  width: 0%;
-  background: #2563eb;
-  transition: width .2s;
-}
-
-@media (max-width: 700px) {
-  header h1 {
-    font-size: 34px;
-  }
-
-  .controls {
-    grid-template-columns: 1fr;
-  }
-
-  .caption {
-    font-size: 23px;
-  }
-}
-</style>
-</head>
-
-<body>
-
-<header>
-  <h1>SmartCaption AI</h1>
-  <p>AI-powered Gujarati, Hindi & English video captions</p>
-</header>
-
-<div class="container">
-
-  <!-- UPLOAD -->
-  <div class="card">
-    <h2>🎬 Upload Your Video</h2>
-
-    <div class="upload-box">
-
-      <p>Upload MP4, MOV or another browser-supported video</p>
-
-      <input
-        type="file"
-        id="videoInput"
-        accept="video/*"
-      >
-
-      <div id="fileStatus" class="status"></div>
-
-    </div>
-
-    <video
-      id="videoPreview"
-      controls
-      class="hidden">
-    </video>
-  </div>
-
-
-  <!-- SETTINGS -->
-  <div class="card">
-
-    <h2>⚙️ Caption Settings</h2>
-
-    <div class="controls">
-
-      <div>
-        <label>Language</label>
-
-        <select id="language">
-          <option value="gujarati">Gujarati</option>
-          <option value="hindi">Hindi</option>
-          <option value="english">English</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Caption Style</label>
-
-        <select id="captionStyle">
-          <option value="modern">Modern</option>
-          <option value="yellow">Yellow</option>
-          <option value="box">Black Box</option>
-        </select>
-      </div>
-
-    </div>
-
-    <button id="generateBtn">
-      ✨ Generate AI Captions
-    </button>
-
-    <div class="progress">
-      <div
-        id="progressBar"
-        class="progress-bar">
-      </div>
-    </div>
-
-    <div
-      id="status"
-      class="status">
-      Ready
-    </div>
-
-  </div>
-
-
-  <!-- PREVIEW -->
-  <div class="card">
-
-    <h2>👀 Caption Preview</h2>
-
-    <div class="caption-preview">
-
-      <div
-        id="captionPreview"
-        class="caption">
-        Upload a video and generate captions.
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- EDITOR -->
-  <div class="card">
-
-    <h2>✏️ Caption Editor</h2>
-
-    <textarea
-      id="transcript"
-      placeholder="AI generated captions will appear here...">
-    </textarea>
-
-    <button
-      id="downloadBtn"
-      class="secondary">
-      ⬇ Download SRT
-    </button>
-
-  </div>
-
-
-  <!-- SEGMENTS -->
-  <div class="card">
-
-    <h2>🕒 Caption Timeline</h2>
-
-    <div id="segments">
-      No captions generated yet.
-    </div>
-
-  </div>
-
-</div>
-
-
-<script type="module">
-
-import {
-  pipeline,
-  env
-} from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.0";
-
-
-// --------------------------------------------------
-// SETTINGS
-// --------------------------------------------------
-
-env.allowLocalModels = false;
-env.allowRemoteModels = true;
-
-
-// --------------------------------------------------
-// ELEMENTS
-// --------------------------------------------------
+<script>
+const API_URL =
+  "https://smartcaption-ai.pandyasharad81.workers.dev/";
 
 const videoInput =
   document.getElementById("videoInput");
@@ -384,105 +38,49 @@ const statusBox =
 const progressBar =
   document.getElementById("progressBar");
 
-
-// --------------------------------------------------
-// GLOBAL VARIABLES
-// --------------------------------------------------
-
 let selectedFile = null;
 let generatedChunks = [];
 
-let transcriber = null;
+
+// -----------------------------
+// Video select
+// -----------------------------
+
+videoInput.addEventListener("change", () => {
+
+  const file = videoInput.files[0];
+
+  if (!file) return;
+
+  selectedFile = file;
+
+  videoPreview.src =
+    URL.createObjectURL(file);
+
+  videoPreview.classList.remove("hidden");
+
+  fileStatus.textContent =
+    "✅ Selected: " + file.name;
+});
 
 
-// --------------------------------------------------
-// VIDEO SELECT
-// --------------------------------------------------
+// -----------------------------
+// Language mapping
+// -----------------------------
 
-videoInput.addEventListener(
-  "change",
-  () => {
+function getLanguageCode() {
 
-    const file =
-      videoInput.files[0];
+  const value = language.value;
 
-    if (!file) {
-      return;
-    }
-
-    selectedFile = file;
-
-    videoPreview.src =
-      URL.createObjectURL(file);
-
-    videoPreview.classList.remove("hidden");
-
-    fileStatus.textContent =
-      "✅ Selected: " + file.name;
-
-  }
-);
-
-
-// --------------------------------------------------
-// LOAD WHISPER MODEL
-// --------------------------------------------------
-
-async function loadModel() {
-
-  if (transcriber) {
-    return transcriber;
-  }
-
-  statusBox.textContent =
-    "⏳ Loading AI model... First time may take a while.";
-
-  generateBtn.disabled = true;
-
-  try {
-
-    const hasWebGPU =
-      "gpu" in navigator;
-
-    const options = {};
-
-    if (hasWebGPU) {
-      options.device = "webgpu";
-    }
-
-    transcriber =
-      await pipeline(
-        "automatic-speech-recognition",
-        "Xenova/whisper-tiny",
-        {
-          ...options
-        }
-      );
-
-    statusBox.textContent =
-      "✅ AI model ready.";
-
-    generateBtn.disabled = false;
-
-    return transcriber;
-
-  } catch (error) {
-
-    console.error(error);
-
-    statusBox.textContent =
-      "❌ Could not load AI model.";
-
-    generateBtn.disabled = false;
-
-    throw error;
-  }
+  if (value === "gujarati") return "gu";
+  if (value === "hindi") return "hi";
+  return "en";
 }
 
 
-// --------------------------------------------------
-// VIDEO -> AUDIO
-// --------------------------------------------------
+// -----------------------------
+// Extract audio
+// -----------------------------
 
 async function extractAudio(file) {
 
@@ -500,7 +98,6 @@ async function extractAudio(file) {
       arrayBuffer
     );
 
-  // Whisper expects 16kHz mono audio.
   const targetRate = 16000;
 
   const duration =
@@ -527,18 +124,168 @@ async function extractAudio(file) {
   const rendered =
     await offline.startRendering();
 
-  const audio =
+  const samples =
     rendered.getChannelData(0);
 
   await audioContext.close();
 
-  return audio;
+  return samples;
 }
 
 
-// --------------------------------------------------
-// GENERATE CAPTIONS
-// --------------------------------------------------
+// -----------------------------
+// Float32 -> WAV
+// -----------------------------
+
+function createWavBlob(
+  samples,
+  sampleRate = 16000
+) {
+
+  const buffer =
+    new ArrayBuffer(
+      44 + samples.length * 2
+    );
+
+  const view =
+    new DataView(buffer);
+
+  function writeString(offset, text) {
+
+    for (
+      let i = 0;
+      i < text.length;
+      i++
+    ) {
+
+      view.setUint8(
+        offset + i,
+        text.charCodeAt(i)
+      );
+
+    }
+  }
+
+  writeString(0, "RIFF");
+
+  view.setUint32(
+    4,
+    36 + samples.length * 2,
+    true
+  );
+
+  writeString(8, "WAVE");
+
+  writeString(12, "fmt ");
+
+  view.setUint32(16, 16, true);
+
+  view.setUint16(20, 1, true);
+
+  view.setUint16(22, 1, true);
+
+  view.setUint32(
+    24,
+    sampleRate,
+    true
+  );
+
+  view.setUint32(
+    28,
+    sampleRate * 2,
+    true
+  );
+
+  view.setUint16(32, 2, true);
+
+  view.setUint16(34, 16, true);
+
+  writeString(36, "data");
+
+  view.setUint32(
+    40,
+    samples.length * 2,
+    true
+  );
+
+  let offset = 44;
+
+  for (
+    let i = 0;
+    i < samples.length;
+    i++
+  ) {
+
+    let sample =
+      Math.max(
+        -1,
+        Math.min(1, samples[i])
+      );
+
+    sample =
+      sample < 0
+        ? sample * 32768
+        : sample * 32767;
+
+    view.setInt16(
+      offset,
+      sample,
+      true
+    );
+
+    offset += 2;
+  }
+
+  return new Blob(
+    [buffer],
+    {
+      type: "audio/wav"
+    }
+  );
+}
+
+
+// -----------------------------
+// Blob -> Base64
+// -----------------------------
+
+async function blobToBase64(blob) {
+
+  const buffer =
+    await blob.arrayBuffer();
+
+  const bytes =
+    new Uint8Array(buffer);
+
+  let binary = "";
+
+  const chunkSize = 0x8000;
+
+  for (
+    let i = 0;
+    i < bytes.length;
+    i += chunkSize
+  ) {
+
+    const chunk =
+      bytes.subarray(
+        i,
+        i + chunkSize
+      );
+
+    binary +=
+      String.fromCharCode(
+        ...chunk
+      );
+  }
+
+  return btoa(binary);
+}
+
+
+// -----------------------------
+// Generate captions
+// -----------------------------
 
 generateBtn.addEventListener(
   "click",
@@ -559,53 +306,91 @@ generateBtn.addEventListener(
 
     try {
 
-      const pipe =
-        await loadModel();
+      statusBox.textContent =
+        "🎧 Extracting audio...";
 
-      progressBar.style.width = "25%";
-
-      const audio =
+      const samples =
         await extractAudio(
           selectedFile
         );
 
-      progressBar.style.width = "45%";
+      progressBar.style.width =
+        "35%";
+
+      const wavBlob =
+        createWavBlob(
+          samples,
+          16000
+        );
 
       statusBox.textContent =
-        "🤖 AI is listening to your video...";
+        "📦 Preparing audio...";
 
-      const selectedLanguage =
-        language.value;
+      const base64Audio =
+        await blobToBase64(
+          wavBlob
+        );
 
-      const result =
-        await pipe(
-          audio,
+      progressBar.style.width =
+        "50%";
+
+      statusBox.textContent =
+        "🤖 Cloud AI is transcribing...";
+
+      const response =
+        await fetch(
+          API_URL,
           {
-            language:
-              selectedLanguage,
+            method: "POST",
 
-            task: "transcribe",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
 
-            return_timestamps: true,
-
-            chunk_length_s: 30,
-
-            stride_length_s: 5
+            body:
+              JSON.stringify({
+                audio: base64Audio,
+                language:
+                  getLanguageCode()
+              })
           }
         );
 
       progressBar.style.width =
-        "85%";
+        "75%";
+
+      if (!response.ok) {
+
+        throw new Error(
+          "Cloudflare API error: " +
+          response.status
+        );
+      }
+
+      const result =
+        await response.json();
+
+      if (!result.success) {
+
+        throw new Error(
+          result.error ||
+          "Transcription failed"
+        );
+      }
 
       const finalText =
-        result.text ||
-        "";
+        result.text || "";
 
       transcript.value =
         finalText.trim();
 
       generatedChunks =
-        result.chunks || [];
+        normalizeSegments(
+          result.segments,
+          result.vtt,
+          finalText
+        );
 
       renderChunks();
 
@@ -626,12 +411,15 @@ generateBtn.addEventListener(
       console.error(error);
 
       statusBox.textContent =
-        "❌ Error: " +
-        (error.message ||
-         "Caption generation failed.");
+        "❌ " +
+        (
+          error.message ||
+          "Caption generation failed."
+        );
 
       alert(
-        "Caption generation failed. Check the browser console for details."
+        error.message ||
+        "Caption generation failed."
       );
 
     } finally {
@@ -639,27 +427,187 @@ generateBtn.addEventListener(
       generateBtn.disabled =
         false;
     }
-
   }
 );
 
 
-// --------------------------------------------------
-// RENDER TIMELINE
-// --------------------------------------------------
+// -----------------------------
+// Normalize segments
+// -----------------------------
+
+function normalizeSegments(
+  segments,
+  vtt,
+  fullText
+) {
+
+  if (
+    Array.isArray(segments) &&
+    segments.length
+  ) {
+
+    return segments.map(
+      (segment) => {
+
+        const start =
+          segment.start ??
+          segment.timestamp?.[0] ??
+          0;
+
+        const end =
+          segment.end ??
+          segment.timestamp?.[1] ??
+          start + 3;
+
+        return {
+          start,
+          end,
+          text:
+            segment.text || ""
+        };
+      }
+    );
+  }
+
+  if (vtt) {
+
+    return parseVTT(vtt);
+  }
+
+  return [{
+    start: 0,
+    end: 3,
+    text: fullText || ""
+  }];
+}
+
+
+// -----------------------------
+// Parse VTT
+// -----------------------------
+
+function parseVTT(vtt) {
+
+  const blocks =
+    vtt
+      .replace(/\r/g, "")
+      .split("\n\n");
+
+  const result = [];
+
+  for (const block of blocks) {
+
+    const lines =
+      block.split("\n");
+
+    const timeLineIndex =
+      lines.findIndex(
+        line =>
+          line.includes("-->")
+      );
+
+    if (timeLineIndex === -1) {
+      continue;
+    }
+
+    const timeLine =
+      lines[timeLineIndex];
+
+    const parts =
+      timeLine.split("-->");
+
+    const start =
+      parseVTTTime(
+        parts[0].trim()
+      );
+
+    const end =
+      parseVTTTime(
+        parts[1].trim()
+      );
+
+    const text =
+      lines
+        .slice(timeLineIndex + 1)
+        .join(" ")
+        .trim();
+
+    if (text) {
+
+      result.push({
+        start,
+        end,
+        text
+      });
+    }
+  }
+
+  return result;
+}
+
+
+// -----------------------------
+// Parse VTT time
+// -----------------------------
+
+function parseVTTTime(value) {
+
+  value =
+    value.replace(
+      /[<].*?[>]/g,
+      ""
+    );
+
+  const parts =
+    value.split(":");
+
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
+
+  if (parts.length === 3) {
+
+    hours =
+      Number(parts[0]);
+
+    minutes =
+      Number(parts[1]);
+
+    seconds =
+      Number(parts[2]);
+
+  } else {
+
+    minutes =
+      Number(parts[0]);
+
+    seconds =
+      Number(parts[1]);
+  }
+
+  return (
+    hours * 3600 +
+    minutes * 60 +
+    seconds
+  );
+}
+
+
+// -----------------------------
+// Timeline
+// -----------------------------
 
 function renderChunks() {
 
   if (!generatedChunks.length) {
 
     segmentsBox.innerHTML =
-      "No timestamped segments returned.";
+      "No timestamped captions returned.";
 
     return;
   }
 
-  segmentsBox.innerHTML =
-    "";
+  segmentsBox.innerHTML = "";
 
   generatedChunks.forEach(
     (chunk, index) => {
@@ -667,40 +615,29 @@ function renderChunks() {
       const item =
         document.createElement("div");
 
-      item.className =
-        "chunk";
-
-      const start =
-        chunk.timestamp?.[0];
-
-      const end =
-        chunk.timestamp?.[1];
+      item.className = "chunk";
 
       item.innerHTML = `
         <div class="time">
-          ${formatTime(start)} →
-          ${formatTime(end)}
+          ${formatTime(chunk.start)}
+          →
+          ${formatTime(chunk.end)}
         </div>
 
         <div>
-          ${escapeHtml(
-            chunk.text || ""
-          )}
+          ${escapeHtml(chunk.text)}
         </div>
       `;
 
-      segmentsBox.appendChild(
-        item
-      );
-
+      segmentsBox.appendChild(item);
     }
   );
 }
 
 
-// --------------------------------------------------
-// STYLE
-// --------------------------------------------------
+// -----------------------------
+// Caption style
+// -----------------------------
 
 captionStyle.addEventListener(
   "change",
@@ -711,6 +648,12 @@ function applyStyle() {
 
   captionPreview.className =
     "caption";
+
+  captionPreview.style.padding =
+    "";
+
+  captionPreview.style.borderRadius =
+    "";
 
   if (
     captionStyle.value ===
@@ -726,9 +669,7 @@ function applyStyle() {
     captionPreview.style.background =
       "transparent";
 
-  }
-
-  else if (
+  } else if (
     captionStyle.value ===
     "yellow"
   ) {
@@ -742,12 +683,7 @@ function applyStyle() {
     captionPreview.style.background =
       "transparent";
 
-  }
-
-  else if (
-    captionStyle.value ===
-    "box"
-  ) {
+  } else {
 
     captionPreview.style.color =
       "white";
@@ -767,9 +703,9 @@ function applyStyle() {
 }
 
 
-// --------------------------------------------------
-// DOWNLOAD SRT
-// --------------------------------------------------
+// -----------------------------
+// SRT Download
+// -----------------------------
 
 downloadBtn.addEventListener(
   "click",
@@ -789,21 +725,15 @@ downloadBtn.addEventListener(
     generatedChunks.forEach(
       (chunk, index) => {
 
-        const start =
-          chunk.timestamp?.[0] ?? 0;
-
-        const end =
-          chunk.timestamp?.[1] ??
-          start + 3;
-
         srt +=
           `${index + 1}\n`;
 
         srt +=
-          `${formatSRTTime(start)} --> ${formatSRTTime(end)}\n`;
+          `${formatSRTTime(chunk.start)} --> ` +
+          `${formatSRTTime(chunk.end)}\n`;
 
         srt +=
-          `${(chunk.text || "").trim()}\n\n`;
+          `${chunk.text.trim()}\n\n`;
       }
     );
 
@@ -830,14 +760,13 @@ downloadBtn.addEventListener(
     link.click();
 
     URL.revokeObjectURL(url);
-
   }
 );
 
 
-// --------------------------------------------------
-// TIME FORMATS
-// --------------------------------------------------
+// -----------------------------
+// Helpers
+// -----------------------------
 
 function formatTime(seconds) {
 
@@ -871,9 +800,7 @@ function formatSRTTime(seconds) {
     );
 
   const hours =
-    Math.floor(
-      seconds / 3600
-    );
+    Math.floor(seconds / 3600);
 
   const minutes =
     Math.floor(
@@ -881,32 +808,25 @@ function formatSRTTime(seconds) {
     );
 
   const secs =
-    Math.floor(
-      seconds % 60
-    );
+    Math.floor(seconds % 60);
 
   const millis =
     Math.floor(
       (seconds -
-       Math.floor(seconds)) *
-      1000
+       Math.floor(seconds)) * 1000
     );
 
   return (
-    String(hours).padStart(2,"0") +
+    String(hours).padStart(2, "0") +
     ":" +
-    String(minutes).padStart(2,"0") +
+    String(minutes).padStart(2, "0") +
     ":" +
-    String(secs).padStart(2,"0") +
+    String(secs).padStart(2, "0") +
     "," +
-    String(millis).padStart(3,"0")
+    String(millis).padStart(3, "0")
   );
 }
 
-
-// --------------------------------------------------
-// SECURITY HELPER
-// --------------------------------------------------
 
 function escapeHtml(text) {
 
@@ -919,6 +839,3 @@ function escapeHtml(text) {
 }
 
 </script>
-
-</body>
-</html>
