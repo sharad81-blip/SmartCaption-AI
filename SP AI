@@ -18,3 +18,11 @@ Video Preview
 ---------------------
 
 [ Export Video ]
+index.html
+style.css
+script.js
+SmartCaption-AI/
+│
+├── index.html
+├── style.css
+└── script.js
