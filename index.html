@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>SmartCaption AI</title>
 
 <style>
@@ -20,8 +21,8 @@ body {
 header {
   background: linear-gradient(135deg, #111827, #2563eb);
   color: white;
-  padding: 55px 20px;
   text-align: center;
+  padding: 55px 20px;
 }
 
 header h1 {
@@ -30,9 +31,8 @@ header h1 {
 }
 
 header p {
-  margin-top: 12px;
   font-size: 18px;
-  opacity: 0.9;
+  opacity: .9;
 }
 
 .container {
@@ -44,40 +44,35 @@ header p {
 .card {
   background: white;
   padding: 28px;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
   margin-bottom: 25px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
 }
 
-.card h2 {
-  margin-top: 0;
-}
-
-.upload-area {
+.upload-box {
   border: 2px dashed #2563eb;
   border-radius: 16px;
-  padding: 35px;
+  padding: 40px;
   text-align: center;
   background: #eff6ff;
 }
 
-input[type="file"] {
-  margin-top: 15px;
+input[type=file] {
+  margin-top: 20px;
 }
 
 video {
   width: 100%;
-  max-height: 520px;
-  border-radius: 15px;
+  max-height: 500px;
   margin-top: 20px;
-  background: black;
+  border-radius: 15px;
+  background: #000;
 }
 
 .controls {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
-  margin-top: 20px;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
 
 label {
@@ -87,8 +82,7 @@ label {
 }
 
 select,
-textarea,
-input[type="text"] {
+textarea {
   width: 100%;
   padding: 13px;
   border: 1px solid #d1d5db;
@@ -97,14 +91,13 @@ input[type="text"] {
 }
 
 textarea {
-  min-height: 150px;
-  resize: vertical;
+  min-height: 180px;
 }
 
 button {
-  border: none;
   background: #2563eb;
   color: white;
+  border: 0;
   padding: 14px 22px;
   border-radius: 10px;
   font-size: 16px;
@@ -116,12 +109,19 @@ button:hover {
   background: #1d4ed8;
 }
 
+button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
 .secondary {
   background: #111827;
 }
 
-.secondary:hover {
-  background: #000000;
+.status {
+  margin-top: 15px;
+  font-weight: bold;
+  color: #2563eb;
 }
 
 .caption-preview {
@@ -139,40 +139,42 @@ button:hover {
 .caption {
   font-size: 32px;
   font-weight: bold;
-  line-height: 1.35;
+  line-height: 1.4;
   max-width: 90%;
 }
 
-.caption.modern {
-  color: white;
-  text-shadow: 3px 3px 8px black;
+.chunk {
+  background: #f8fafc;
+  padding: 15px;
+  border-radius: 12px;
+  margin: 10px 0;
+  border-left: 4px solid #2563eb;
 }
 
-.caption.yellow {
-  color: #fde047;
-  text-shadow: 3px 3px 8px black;
-}
-
-.caption.box {
-  background: rgba(0,0,0,0.75);
-  padding: 10px 18px;
-  border-radius: 10px;
-}
-
-.status {
-  margin-top: 15px;
-  font-weight: bold;
-  color: #2563eb;
+.time {
+  color: #6b7280;
+  font-size: 13px;
+  margin-bottom: 5px;
 }
 
 .hidden {
   display: none;
 }
 
-footer {
-  text-align: center;
-  padding: 30px;
-  color: #6b7280;
+.progress {
+  width: 100%;
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-top: 15px;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: #2563eb;
+  transition: width .2s;
 }
 
 @media (max-width: 700px) {
@@ -195,16 +197,18 @@ footer {
 
 <header>
   <h1>SmartCaption AI</h1>
-  <p>Create beautiful captions for your videos</p>
+  <p>AI-powered Gujarati, Hindi & English video captions</p>
 </header>
 
 <div class="container">
 
+  <!-- UPLOAD -->
   <div class="card">
     <h2>🎬 Upload Your Video</h2>
 
-    <div class="upload-area">
-      <p>Gujarati • Hindi • English</p>
+    <div class="upload-box">
+
+      <p>Upload MP4, MOV or another browser-supported video</p>
 
       <input
         type="file"
@@ -213,13 +217,20 @@ footer {
       >
 
       <div id="fileStatus" class="status"></div>
+
     </div>
 
-    <video id="videoPreview" controls class="hidden"></video>
+    <video
+      id="videoPreview"
+      controls
+      class="hidden">
+    </video>
   </div>
 
 
+  <!-- SETTINGS -->
   <div class="card">
+
     <h2>⚙️ Caption Settings</h2>
 
     <div class="controls">
@@ -228,70 +239,114 @@ footer {
         <label>Language</label>
 
         <select id="language">
-          <option value="gu">Gujarati</option>
-          <option value="hi">Hindi</option>
-          <option value="en">English</option>
+          <option value="gujarati">Gujarati</option>
+          <option value="hindi">Hindi</option>
+          <option value="english">English</option>
         </select>
       </div>
 
       <div>
         <label>Caption Style</label>
 
-        <select id="style">
+        <select id="captionStyle">
           <option value="modern">Modern</option>
-          <option value="yellow">Yellow Highlight</option>
+          <option value="yellow">Yellow</option>
           <option value="box">Black Box</option>
         </select>
       </div>
 
     </div>
 
-    <br>
-
-    <label>Transcript / Caption Text</label>
-
-    <textarea
-      id="transcript"
-      placeholder="Type or paste your transcript here..."
-    ></textarea>
-
-    <button onclick="generateCaptions()">
-      ✨ Generate Captions
+    <button id="generateBtn">
+      ✨ Generate AI Captions
     </button>
+
+    <div class="progress">
+      <div
+        id="progressBar"
+        class="progress-bar">
+      </div>
+    </div>
+
+    <div
+      id="status"
+      class="status">
+      Ready
+    </div>
 
   </div>
 
 
+  <!-- PREVIEW -->
   <div class="card">
+
     <h2>👀 Caption Preview</h2>
 
     <div class="caption-preview">
 
-      <div id="captionPreview" class="caption modern">
-        Your captions will appear here
+      <div
+        id="captionPreview"
+        class="caption">
+        Upload a video and generate captions.
       </div>
 
     </div>
 
+  </div>
+
+
+  <!-- EDITOR -->
+  <div class="card">
+
+    <h2>✏️ Caption Editor</h2>
+
+    <textarea
+      id="transcript"
+      placeholder="AI generated captions will appear here...">
+    </textarea>
+
     <button
-      class="secondary"
-      onclick="downloadSRT()"
-    >
+      id="downloadBtn"
+      class="secondary">
       ⬇ Download SRT
     </button>
 
   </div>
 
+
+  <!-- SEGMENTS -->
+  <div class="card">
+
+    <h2>🕒 Caption Timeline</h2>
+
+    <div id="segments">
+      No captions generated yet.
+    </div>
+
+  </div>
+
 </div>
 
-<footer>
-  © 2026 SmartCaption AI
-</footer>
+
+<script type="module">
+
+import {
+  pipeline,
+  env
+} from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.0";
 
 
-<script>
+// --------------------------------------------------
+// SETTINGS
+// --------------------------------------------------
 
-let selectedVideo = null;
+env.allowLocalModels = false;
+env.allowRemoteModels = true;
+
+
+// --------------------------------------------------
+// ELEMENTS
+// --------------------------------------------------
 
 const videoInput =
   document.getElementById("videoInput");
@@ -302,145 +357,565 @@ const videoPreview =
 const fileStatus =
   document.getElementById("fileStatus");
 
+const generateBtn =
+  document.getElementById("generateBtn");
+
+const downloadBtn =
+  document.getElementById("downloadBtn");
+
+const language =
+  document.getElementById("language");
+
+const captionStyle =
+  document.getElementById("captionStyle");
+
 const transcript =
   document.getElementById("transcript");
 
 const captionPreview =
   document.getElementById("captionPreview");
 
-const styleSelect =
-  document.getElementById("style");
+const segmentsBox =
+  document.getElementById("segments");
+
+const statusBox =
+  document.getElementById("status");
+
+const progressBar =
+  document.getElementById("progressBar");
 
 
-videoInput.addEventListener("change", function () {
+// --------------------------------------------------
+// GLOBAL VARIABLES
+// --------------------------------------------------
 
-  const file = this.files[0];
+let selectedFile = null;
+let generatedChunks = [];
 
-  if (!file) {
-    return;
+let transcriber = null;
+
+
+// --------------------------------------------------
+// VIDEO SELECT
+// --------------------------------------------------
+
+videoInput.addEventListener(
+  "change",
+  () => {
+
+    const file =
+      videoInput.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    selectedFile = file;
+
+    videoPreview.src =
+      URL.createObjectURL(file);
+
+    videoPreview.classList.remove("hidden");
+
+    fileStatus.textContent =
+      "✅ Selected: " + file.name;
+
+  }
+);
+
+
+// --------------------------------------------------
+// LOAD WHISPER MODEL
+// --------------------------------------------------
+
+async function loadModel() {
+
+  if (transcriber) {
+    return transcriber;
   }
 
-  selectedVideo = file;
+  statusBox.textContent =
+    "⏳ Loading AI model... First time may take a while.";
 
-  const videoURL =
-    URL.createObjectURL(file);
+  generateBtn.disabled = true;
 
-  videoPreview.src = videoURL;
-  videoPreview.classList.remove("hidden");
+  try {
 
-  fileStatus.textContent =
-    "✅ Video selected: " + file.name;
+    const hasWebGPU =
+      "gpu" in navigator;
 
-});
+    const options = {};
+
+    if (hasWebGPU) {
+      options.device = "webgpu";
+    }
+
+    transcriber =
+      await pipeline(
+        "automatic-speech-recognition",
+        "Xenova/whisper-tiny",
+        {
+          ...options
+        }
+      );
+
+    statusBox.textContent =
+      "✅ AI model ready.";
+
+    generateBtn.disabled = false;
+
+    return transcriber;
+
+  } catch (error) {
+
+    console.error(error);
+
+    statusBox.textContent =
+      "❌ Could not load AI model.";
+
+    generateBtn.disabled = false;
+
+    throw error;
+  }
+}
 
 
-function generateCaptions() {
+// --------------------------------------------------
+// VIDEO -> AUDIO
+// --------------------------------------------------
 
-  const text =
-    transcript.value.trim();
+async function extractAudio(file) {
 
-  if (!text) {
+  statusBox.textContent =
+    "🎧 Reading video audio...";
 
-    alert(
-      "Please enter or paste your transcript first."
+  const arrayBuffer =
+    await file.arrayBuffer();
+
+  const audioContext =
+    new AudioContext();
+
+  const decoded =
+    await audioContext.decodeAudioData(
+      arrayBuffer
     );
 
+  // Whisper expects 16kHz mono audio.
+  const targetRate = 16000;
+
+  const duration =
+    decoded.duration;
+
+  const offline =
+    new OfflineAudioContext(
+      1,
+      Math.ceil(duration * targetRate),
+      targetRate
+    );
+
+  const source =
+    offline.createBufferSource();
+
+  source.buffer = decoded;
+
+  source.connect(
+    offline.destination
+  );
+
+  source.start();
+
+  const rendered =
+    await offline.startRendering();
+
+  const audio =
+    rendered.getChannelData(0);
+
+  await audioContext.close();
+
+  return audio;
+}
+
+
+// --------------------------------------------------
+// GENERATE CAPTIONS
+// --------------------------------------------------
+
+generateBtn.addEventListener(
+  "click",
+  async () => {
+
+    if (!selectedFile) {
+
+      alert(
+        "Please select a video first."
+      );
+
+      return;
+    }
+
+    generateBtn.disabled = true;
+
+    progressBar.style.width = "10%";
+
+    try {
+
+      const pipe =
+        await loadModel();
+
+      progressBar.style.width = "25%";
+
+      const audio =
+        await extractAudio(
+          selectedFile
+        );
+
+      progressBar.style.width = "45%";
+
+      statusBox.textContent =
+        "🤖 AI is listening to your video...";
+
+      const selectedLanguage =
+        language.value;
+
+      const result =
+        await pipe(
+          audio,
+          {
+            language:
+              selectedLanguage,
+
+            task: "transcribe",
+
+            return_timestamps: true,
+
+            chunk_length_s: 30,
+
+            stride_length_s: 5
+          }
+        );
+
+      progressBar.style.width =
+        "85%";
+
+      const finalText =
+        result.text ||
+        "";
+
+      transcript.value =
+        finalText.trim();
+
+      generatedChunks =
+        result.chunks || [];
+
+      renderChunks();
+
+      captionPreview.textContent =
+        finalText.trim() ||
+        "No speech detected.";
+
+      applyStyle();
+
+      progressBar.style.width =
+        "100%";
+
+      statusBox.textContent =
+        "✅ Captions generated successfully!";
+
+    } catch (error) {
+
+      console.error(error);
+
+      statusBox.textContent =
+        "❌ Error: " +
+        (error.message ||
+         "Caption generation failed.");
+
+      alert(
+        "Caption generation failed. Check the browser console for details."
+      );
+
+    } finally {
+
+      generateBtn.disabled =
+        false;
+    }
+
+  }
+);
+
+
+// --------------------------------------------------
+// RENDER TIMELINE
+// --------------------------------------------------
+
+function renderChunks() {
+
+  if (!generatedChunks.length) {
+
+    segmentsBox.innerHTML =
+      "No timestamped segments returned.";
+
     return;
   }
 
-  captionPreview.textContent = text;
+  segmentsBox.innerHTML =
+    "";
+
+  generatedChunks.forEach(
+    (chunk, index) => {
+
+      const item =
+        document.createElement("div");
+
+      item.className =
+        "chunk";
+
+      const start =
+        chunk.timestamp?.[0];
+
+      const end =
+        chunk.timestamp?.[1];
+
+      item.innerHTML = `
+        <div class="time">
+          ${formatTime(start)} →
+          ${formatTime(end)}
+        </div>
+
+        <div>
+          ${escapeHtml(
+            chunk.text || ""
+          )}
+        </div>
+      `;
+
+      segmentsBox.appendChild(
+        item
+      );
+
+    }
+  );
+}
+
+
+// --------------------------------------------------
+// STYLE
+// --------------------------------------------------
+
+captionStyle.addEventListener(
+  "change",
+  applyStyle
+);
+
+function applyStyle() {
 
   captionPreview.className =
-    "caption " + styleSelect.value;
+    "caption";
 
-}
+  if (
+    captionStyle.value ===
+    "modern"
+  ) {
 
+    captionPreview.style.color =
+      "white";
 
-function downloadSRT() {
+    captionPreview.style.textShadow =
+      "3px 3px 8px black";
 
-  const text =
-    transcript.value.trim();
+    captionPreview.style.background =
+      "transparent";
 
-  if (!text) {
-
-    alert(
-      "Please generate captions first."
-    );
-
-    return;
   }
 
-  const lines =
-    text.split(/\n+/);
+  else if (
+    captionStyle.value ===
+    "yellow"
+  ) {
 
-  let srt = "";
+    captionPreview.style.color =
+      "#fde047";
 
-  lines.forEach((line, index) => {
+    captionPreview.style.textShadow =
+      "3px 3px 8px black";
 
-    const startSeconds =
-      index * 3;
+    captionPreview.style.background =
+      "transparent";
 
-    const endSeconds =
-      startSeconds + 3;
+  }
 
-    srt +=
-      (index + 1) +
-      "\n";
+  else if (
+    captionStyle.value ===
+    "box"
+  ) {
 
-    srt +=
-      formatTime(startSeconds) +
-      " --> " +
-      formatTime(endSeconds) +
-      "\n";
+    captionPreview.style.color =
+      "white";
 
-    srt +=
-      line +
-      "\n\n";
+    captionPreview.style.textShadow =
+      "none";
 
-  });
+    captionPreview.style.background =
+      "rgba(0,0,0,.75)";
 
-  const blob =
-    new Blob(
-      [srt],
-      { type: "text/plain" }
-    );
+    captionPreview.style.padding =
+      "12px 20px";
 
-  const url =
-    URL.createObjectURL(blob);
-
-  const a =
-    document.createElement("a");
-
-  a.href = url;
-  a.download = "smartcaption.srt";
-
-  a.click();
-
-  URL.revokeObjectURL(url);
+    captionPreview.style.borderRadius =
+      "10px";
+  }
 }
 
 
-function formatTime(totalSeconds) {
+// --------------------------------------------------
+// DOWNLOAD SRT
+// --------------------------------------------------
+
+downloadBtn.addEventListener(
+  "click",
+  () => {
+
+    if (!generatedChunks.length) {
+
+      alert(
+        "Generate captions first."
+      );
+
+      return;
+    }
+
+    let srt = "";
+
+    generatedChunks.forEach(
+      (chunk, index) => {
+
+        const start =
+          chunk.timestamp?.[0] ?? 0;
+
+        const end =
+          chunk.timestamp?.[1] ??
+          start + 3;
+
+        srt +=
+          `${index + 1}\n`;
+
+        srt +=
+          `${formatSRTTime(start)} --> ${formatSRTTime(end)}\n`;
+
+        srt +=
+          `${(chunk.text || "").trim()}\n\n`;
+      }
+    );
+
+    const blob =
+      new Blob(
+        [srt],
+        {
+          type:
+            "text/plain;charset=utf-8"
+        }
+      );
+
+    const url =
+      URL.createObjectURL(blob);
+
+    const link =
+      document.createElement("a");
+
+    link.href = url;
+
+    link.download =
+      "smartcaption.srt";
+
+    link.click();
+
+    URL.revokeObjectURL(url);
+
+  }
+);
+
+
+// --------------------------------------------------
+// TIME FORMATS
+// --------------------------------------------------
+
+function formatTime(seconds) {
+
+  if (
+    seconds === undefined ||
+    seconds === null
+  ) {
+    return "--:--";
+  }
+
+  const minutes =
+    Math.floor(seconds / 60);
+
+  const secs =
+    Math.floor(seconds % 60);
+
+  return (
+    String(minutes).padStart(2, "0") +
+    ":" +
+    String(secs).padStart(2, "0")
+  );
+}
+
+
+function formatSRTTime(seconds) {
+
+  seconds =
+    Math.max(
+      0,
+      Number(seconds) || 0
+    );
 
   const hours =
-    Math.floor(totalSeconds / 3600);
+    Math.floor(
+      seconds / 3600
+    );
 
   const minutes =
     Math.floor(
-      (totalSeconds % 3600) / 60
+      (seconds % 3600) / 60
     );
 
-  const seconds =
-    Math.floor(totalSeconds % 60);
+  const secs =
+    Math.floor(
+      seconds % 60
+    );
+
+  const millis =
+    Math.floor(
+      (seconds -
+       Math.floor(seconds)) *
+      1000
+    );
 
   return (
-    String(hours).padStart(2, "0") +
+    String(hours).padStart(2,"0") +
     ":" +
-    String(minutes).padStart(2, "0") +
+    String(minutes).padStart(2,"0") +
     ":" +
-    String(seconds).padStart(2, "0") +
-    ",000"
+    String(secs).padStart(2,"0") +
+    "," +
+    String(millis).padStart(3,"0")
   );
+}
+
+
+// --------------------------------------------------
+// SECURITY HELPER
+// --------------------------------------------------
+
+function escapeHtml(text) {
+
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 </script>
