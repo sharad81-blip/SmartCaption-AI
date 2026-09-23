@@ -1,74 +1,449 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartCaption AI</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f5f7fb;
-      text-align: center;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartCaption AI</title>
 
-    header {
-      background: #111827;
-      color: white;
-      padding: 50px 20px;
-    }
+<style>
+* {
+  box-sizing: border-box;
+}
 
-    h1 {
-      font-size: 42px;
-      margin-bottom: 10px;
-    }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f7fb;
+  color: #111827;
+}
 
-    p {
-      font-size: 18px;
-    }
+header {
+  background: linear-gradient(135deg, #111827, #2563eb);
+  color: white;
+  padding: 55px 20px;
+  text-align: center;
+}
 
-    .box {
-      background: white;
-      width: 80%;
-      max-width: 700px;
-      margin: 40px auto;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    }
+header h1 {
+  margin: 0;
+  font-size: 46px;
+}
 
-    button {
-      background: #2563eb;
-      color: white;
-      border: none;
-      padding: 14px 25px;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+header p {
+  margin-top: 12px;
+  font-size: 18px;
+  opacity: 0.9;
+}
 
-    button:hover {
-      background: #1d4ed8;
-    }
-  </style>
+.container {
+  width: 92%;
+  max-width: 1100px;
+  margin: 35px auto;
+}
+
+.card {
+  background: white;
+  padding: 28px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  margin-bottom: 25px;
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+.upload-area {
+  border: 2px dashed #2563eb;
+  border-radius: 16px;
+  padding: 35px;
+  text-align: center;
+  background: #eff6ff;
+}
+
+input[type="file"] {
+  margin-top: 15px;
+}
+
+video {
+  width: 100%;
+  max-height: 520px;
+  border-radius: 15px;
+  margin-top: 20px;
+  background: black;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  margin-top: 20px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+select,
+textarea,
+input[type="text"] {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+button {
+  border: none;
+  background: #2563eb;
+  color: white;
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 18px;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+.secondary {
+  background: #111827;
+}
+
+.secondary:hover {
+  background: #000000;
+}
+
+.caption-preview {
+  min-height: 180px;
+  background: #111827;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  color: white;
+  text-align: center;
+}
+
+.caption {
+  font-size: 32px;
+  font-weight: bold;
+  line-height: 1.35;
+  max-width: 90%;
+}
+
+.caption.modern {
+  color: white;
+  text-shadow: 3px 3px 8px black;
+}
+
+.caption.yellow {
+  color: #fde047;
+  text-shadow: 3px 3px 8px black;
+}
+
+.caption.box {
+  background: rgba(0,0,0,0.75);
+  padding: 10px 18px;
+  border-radius: 10px;
+}
+
+.status {
+  margin-top: 15px;
+  font-weight: bold;
+  color: #2563eb;
+}
+
+.hidden {
+  display: none;
+}
+
+footer {
+  text-align: center;
+  padding: 30px;
+  color: #6b7280;
+}
+
+@media (max-width: 700px) {
+  header h1 {
+    font-size: 34px;
+  }
+
+  .controls {
+    grid-template-columns: 1fr;
+  }
+
+  .caption {
+    font-size: 23px;
+  }
+}
+</style>
 </head>
 
 <body>
 
-  <header>
-    <h1>SmartCaption AI</h1>
-    <p>Create captions for your videos easily</p>
-  </header>
+<header>
+  <h1>SmartCaption AI</h1>
+  <p>Create beautiful captions for your videos</p>
+</header>
 
-  <div class="box">
-    <h2>Upload Your Video</h2>
-    <p>Gujarati • Hindi • English</p>
+<div class="container">
 
-    <input type="file" accept="video/*">
-    <br><br>
+  <div class="card">
+    <h2>🎬 Upload Your Video</h2>
 
-    <button>Generate Captions</button>
+    <div class="upload-area">
+      <p>Gujarati • Hindi • English</p>
+
+      <input
+        type="file"
+        id="videoInput"
+        accept="video/*"
+      >
+
+      <div id="fileStatus" class="status"></div>
+    </div>
+
+    <video id="videoPreview" controls class="hidden"></video>
   </div>
+
+
+  <div class="card">
+    <h2>⚙️ Caption Settings</h2>
+
+    <div class="controls">
+
+      <div>
+        <label>Language</label>
+
+        <select id="language">
+          <option value="gu">Gujarati</option>
+          <option value="hi">Hindi</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Caption Style</label>
+
+        <select id="style">
+          <option value="modern">Modern</option>
+          <option value="yellow">Yellow Highlight</option>
+          <option value="box">Black Box</option>
+        </select>
+      </div>
+
+    </div>
+
+    <br>
+
+    <label>Transcript / Caption Text</label>
+
+    <textarea
+      id="transcript"
+      placeholder="Type or paste your transcript here..."
+    ></textarea>
+
+    <button onclick="generateCaptions()">
+      ✨ Generate Captions
+    </button>
+
+  </div>
+
+
+  <div class="card">
+    <h2>👀 Caption Preview</h2>
+
+    <div class="caption-preview">
+
+      <div id="captionPreview" class="caption modern">
+        Your captions will appear here
+      </div>
+
+    </div>
+
+    <button
+      class="secondary"
+      onclick="downloadSRT()"
+    >
+      ⬇ Download SRT
+    </button>
+
+  </div>
+
+</div>
+
+<footer>
+  © 2026 SmartCaption AI
+</footer>
+
+
+<script>
+
+let selectedVideo = null;
+
+const videoInput =
+  document.getElementById("videoInput");
+
+const videoPreview =
+  document.getElementById("videoPreview");
+
+const fileStatus =
+  document.getElementById("fileStatus");
+
+const transcript =
+  document.getElementById("transcript");
+
+const captionPreview =
+  document.getElementById("captionPreview");
+
+const styleSelect =
+  document.getElementById("style");
+
+
+videoInput.addEventListener("change", function () {
+
+  const file = this.files[0];
+
+  if (!file) {
+    return;
+  }
+
+  selectedVideo = file;
+
+  const videoURL =
+    URL.createObjectURL(file);
+
+  videoPreview.src = videoURL;
+  videoPreview.classList.remove("hidden");
+
+  fileStatus.textContent =
+    "✅ Video selected: " + file.name;
+
+});
+
+
+function generateCaptions() {
+
+  const text =
+    transcript.value.trim();
+
+  if (!text) {
+
+    alert(
+      "Please enter or paste your transcript first."
+    );
+
+    return;
+  }
+
+  captionPreview.textContent = text;
+
+  captionPreview.className =
+    "caption " + styleSelect.value;
+
+}
+
+
+function downloadSRT() {
+
+  const text =
+    transcript.value.trim();
+
+  if (!text) {
+
+    alert(
+      "Please generate captions first."
+    );
+
+    return;
+  }
+
+  const lines =
+    text.split(/\n+/);
+
+  let srt = "";
+
+  lines.forEach((line, index) => {
+
+    const startSeconds =
+      index * 3;
+
+    const endSeconds =
+      startSeconds + 3;
+
+    srt +=
+      (index + 1) +
+      "\n";
+
+    srt +=
+      formatTime(startSeconds) +
+      " --> " +
+      formatTime(endSeconds) +
+      "\n";
+
+    srt +=
+      line +
+      "\n\n";
+
+  });
+
+  const blob =
+    new Blob(
+      [srt],
+      { type: "text/plain" }
+    );
+
+  const url =
+    URL.createObjectURL(blob);
+
+  const a =
+    document.createElement("a");
+
+  a.href = url;
+  a.download = "smartcaption.srt";
+
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+
+function formatTime(totalSeconds) {
+
+  const hours =
+    Math.floor(totalSeconds / 3600);
+
+  const minutes =
+    Math.floor(
+      (totalSeconds % 3600) / 60
+    );
+
+  const seconds =
+    Math.floor(totalSeconds % 60);
+
+  return (
+    String(hours).padStart(2, "0") +
+    ":" +
+    String(minutes).padStart(2, "0") +
+    ":" +
+    String(seconds).padStart(2, "0") +
+    ",000"
+  );
+}
+
+</script>
 
 </body>
 </html>
